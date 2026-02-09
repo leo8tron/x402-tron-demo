@@ -19,6 +19,14 @@ from x402_tron.mechanisms.client import ExactTronClientMechanism
 from x402_tron.signers.client import TronClientSigner
 from x402_tron.tokens import TokenRegistry
 
+
+async def create_agent_wallet_client_signer(network: str):
+    from wallet import TronProvider
+    from x402_tron.signers.client import AgentWalletClientSigner
+
+    provider = await TronProvider.create(private_key=os.getenv("TRON_PRIVATE_KEY", ""))
+    return await AgentWalletClientSigner.create(provider, network=f"tron:{network}")
+
 # Enable detailed logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -57,7 +65,8 @@ async def main():
     print("X402 Payment Client - Configuration")
     print("=" * 80)
     
-    signer = TronClientSigner.from_private_key(TRON_PRIVATE_KEY, network=network)
+    # signer = TronClientSigner.from_private_key(TRON_PRIVATE_KEY, network=network)
+    signer = await create_agent_wallet_client_signer(network)  # use agent-wallet provider instead
     print(f"Current Network: {CURRENT_NETWORK}")
     print(f"Client Address: {signer.get_address()}")
     print(f"Resource URL: {RESOURCE_URL}")

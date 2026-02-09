@@ -30,7 +30,6 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(__dirname, '../../../.env') });
 
-const TRON_PRIVATE_KEY = process.env.TRON_PRIVATE_KEY ?? '';
 const SERVER_URL       = process.env.SERVER_URL ?? 'http://localhost:8000';
 const NETWORK          = 'tron:nile';
 const ENDPOINT         = '/protected-nile';
@@ -39,9 +38,17 @@ const TRON_GRID_HOST   = 'https://nile.trongrid.io';
 // const ENDPOINT         = '/protected-mainnet';
 // const TRON_GRID_HOST   = 'https://api.trongrid.io';
 
-if (!TRON_PRIVATE_KEY) {
-  console.error('Error: TRON_PRIVATE_KEY not set in .env');
-  process.exit(1);
+// ---------------------------------------------------------------------------
+// Agent Wallet signer (uncomment to use provider instead of raw private key)
+// ---------------------------------------------------------------------------
+
+async function createAgentWalletClientSigner(tw: any, network: any) {
+  const { AgentWalletClientSigner } = await import('@bankofai/x402-tron');
+  const { TronProvider } = await import('@bankofai/agent-wallet/wallet');
+
+  const provider = await TronProvider.create();
+
+  return AgentWalletClientSigner.create(tw, provider, network);
 }
 
 // ---------------------------------------------------------------------------
@@ -75,12 +82,15 @@ async function saveImage(response: Response): Promise<string> {
 
 async function main(): Promise<void> {
   const networkName = NETWORK.split(':')[1];
-  const tronWeb = new TronWeb({ fullHost: TRON_GRID_HOST, privateKey: TRON_PRIVATE_KEY }) as any;
-  const signer  = TronClientSigner.withPrivateKey(tronWeb, TRON_PRIVATE_KEY, networkName as any);
+  const tronWeb = new TronWeb({ fullHost: TRON_GRID_HOST }) as any;
+  // const signer  = TronClientSigner.withPrivateKey(tronWeb, TRON_PRIVATE_KEY, networkName as any);
+  const signer = await createAgentWalletClientSigner(tronWeb, networkName);  // use agent-wallet Keystore instead
+  const signerType = signer.constructor.name;
 
   hr();
   console.log('X402 Client (TypeScript)');
   hr();
+  console.log(`  Signer   : ${signerType}`);
   console.log(`  Network  : ${NETWORK}`);
   console.log(`  Address  : ${signer.getAddress()}`);
   console.log(`  Permit   : ${getPaymentPermitAddress(NETWORK)}`);

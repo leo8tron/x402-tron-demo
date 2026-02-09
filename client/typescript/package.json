@@ -9,7 +9,8 @@
     "dev": "tsx watch src/main.ts"
   },
   "dependencies": {
-    "@bankofai/x402-tron": "^0.2.0",
+    "@bankofai/x402-tron": "file:///Users/wdk/tron/x402-tron/typescript/packages/x402",
+    "@bankofai/agent-wallet": "file:///Users/wdk/tron/agent-wallet/typescript",
     "dotenv": "^16.3.1",
     "tronweb": "^6.0.0"
   },
