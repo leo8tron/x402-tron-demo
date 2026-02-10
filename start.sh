@@ -7,6 +7,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+PYTHON_BIN="python"
+if [ -x "$SCRIPT_DIR/.venv/bin/python" ]; then
+    PYTHON_BIN="$SCRIPT_DIR/.venv/bin/python"
+fi
+
 COMPONENT=$1
 
 if [ -z "$COMPONENT" ]; then
@@ -36,21 +41,21 @@ case "$COMPONENT" in
         echo "Starting X402 Protected Resource Server"
         echo "=========================================="
         cd server
-        python main.py
+        "$PYTHON_BIN" main.py
         ;;
     facilitator)
         echo "=========================================="
         echo "Starting X402 Facilitator"
         echo "=========================================="
         cd facilitator
-        python main.py
+        "$PYTHON_BIN" main.py
         ;;
     client)
         echo "=========================================="
         echo "Starting X402 Client (Python)"
         echo "=========================================="
         cd client/python
-        python main.py
+        "$PYTHON_BIN" main.py
         ;;
     client-ts)
         echo "=========================================="

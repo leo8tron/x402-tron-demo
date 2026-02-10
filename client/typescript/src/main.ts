@@ -34,6 +34,8 @@ const SERVER_URL       = process.env.SERVER_URL ?? 'http://localhost:8000';
 const NETWORK          = 'tron:nile';
 const ENDPOINT         = '/protected-nile';
 const TRON_GRID_HOST   = 'https://nile.trongrid.io';
+const TRON_PRIVATE_KEY = process.env.TRON_PRIVATE_KEY ?? '';
+const KEYSTORE_PATH    = process.env.KEYSTORE_PATH;
 // const NETWORK          = 'tron:mainnet';
 // const ENDPOINT         = '/protected-mainnet';
 // const TRON_GRID_HOST   = 'https://api.trongrid.io';
@@ -46,7 +48,9 @@ async function createAgentWalletClientSigner(tw: any, network: any) {
   const { AgentWalletClientSigner } = await import('@bankofai/x402-tron');
   const { TronProvider } = await import('@bankofai/agent-wallet/wallet');
 
-  const provider = await TronProvider.create();
+  const provider = await TronProvider.create(
+    KEYSTORE_PATH ? { keystore: { filePath: KEYSTORE_PATH } } : undefined,
+  );
 
   return AgentWalletClientSigner.create(tw, provider, network);
 }
@@ -82,7 +86,7 @@ async function saveImage(response: Response): Promise<string> {
 
 async function main(): Promise<void> {
   const networkName = NETWORK.split(':')[1];
-  const tronWeb = new TronWeb({ fullHost: TRON_GRID_HOST }) as any;
+  const tronWeb = new TronWeb({ fullHost: TRON_GRID_HOST, privateKey: TRON_PRIVATE_KEY || undefined }) as any;
   // const signer  = TronClientSigner.withPrivateKey(tronWeb, TRON_PRIVATE_KEY, networkName as any);
   const signer = await createAgentWalletClientSigner(tronWeb, networkName);  // use agent-wallet Keystore instead
   const signerType = signer.constructor.name;

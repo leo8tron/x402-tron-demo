@@ -2,7 +2,10 @@
 # Install with: pip install -r requirements.txt
 
 # Core x402-tron SDK with TRON and FastAPI support (source branch)
-x402-tron[tron,fastapi] @ git+https://github.com/bankofai/x402-tron@v0.2.0#subdirectory=python/x402
+x402-tron[tron,fastapi] @ file:///Users/wdk/tron/x402-tron/python/x402
+
+# Agent Wallet (dev branch)
+git+https://github.com/bankofai/agent-wallet@dev#subdirectory=python
 
 # Web framework
 fastapi>=0.104.0
@@ -22,6 +25,9 @@ eth-account>=0.10.0
 
 # Image processing (for server protected resource)
 Pillow>=10.0.0
+
+# Protobuf runtime (match agent-wallet gencode 6.x)
+protobuf>=6.31.1,<7
 
 # Data validation
 pydantic>=2.0.0

@@ -28,6 +28,14 @@ from x402_tron.types import (
 from pydantic import BaseModel
 
 
+async def create_agent_wallet_facilitator_signer(network: str):
+    from wallet import TronProvider
+    from x402_tron.signers.facilitator import AgentWalletFacilitatorSigner
+
+    provider = await TronProvider.create(private_key=os.getenv("TRON_PRIVATE_KEY", ""))
+    return await AgentWalletFacilitatorSigner.create(provider, network=f"tron:{network}")
+
+
 class VerifyRequest(BaseModel):
     """Verify request model"""
     paymentPayload: PaymentPayload
@@ -85,25 +93,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Get facilitator address from first signer
-first_signer = TronFacilitatorSigner.from_private_key(
-    TRON_PRIVATE_KEY,
-    network=SUPPORTED_NETWORKS[0],
-)
-facilitator_address = first_signer.get_address()
-
 # Initialize X402Facilitator
 facilitator = X402Facilitator()
 
-# Register mechanisms for each network
 for network in SUPPORTED_NETWORKS:
-    signer = TronFacilitatorSigner.from_private_key(
-        TRON_PRIVATE_KEY,
-        network=network,
-    )
+    signer = asyncio.run(create_agent_wallet_facilitator_signer(network))
     mechanism = ExactTronFacilitatorMechanism(
         signer,
-        fee_to=facilitator_address,
         base_fee=BASE_FEE,
     )
     facilitator.register([f"tron:{network}"], mechanism)
@@ -111,7 +107,6 @@ for network in SUPPORTED_NETWORKS:
 print("=" * 80)
 print("X402 Payment Facilitator - Configuration")
 print("=" * 80)
-print(f"Facilitator Address: {facilitator_address}")
 print(f"Base Fee: {BASE_FEE}")
 print(f"Supported Networks: {', '.join(SUPPORTED_NETWORKS)}")
 
@@ -129,7 +124,7 @@ print("=" * 80)
 @app.get("/supported")
 def supported():
     """Get supported capabilities"""
-    return facilitator.supported(fee_to=facilitator_address, pricing="flat")
+    return facilitator.supported(pricing="flat")
 
 
 @app.post("/fee/quote")
@@ -199,7 +194,6 @@ def main():
     print("=" * 80)
     print(f"Host: {FACILITATOR_HOST}")
     print(f"Port: {FACILITATOR_PORT}")
-    print(f"Facilitator Address: {facilitator_address}")
     print(f"Supported Networks: {', '.join(SUPPORTED_NETWORKS)}")
     print("=" * 80)
     print("\nEndpoints:")
